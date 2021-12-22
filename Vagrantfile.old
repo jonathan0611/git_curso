@@ -1,0 +1,28 @@
+DNF = 'dnf install -y httpd curl wget vim  && systemctl start httpd && systemctl enable httpd'
+APT = 'apt-get update && apt-get install -y curl wget vim  apache2'
+
+machines = {
+    'server'  => {'memory' =>  '2048', 'cpu' => 1, 'image' => 'debian/buster64', 'ip' => '10', 'shell' =>  APT},
+    'server2'  => {'memory' => '2048', 'cpu' => 2, 'image' => 'ubuntu/xenial64', 'ip' => '20', 'shell' => APT},
+    'server3'  => {'memory' => '2048', 'cpu' => 2, 'image' => 'centos/8', 'ip' => '30', 'shell' => DNF}
+}
+
+Vagrant.configure("2") do |config|
+machines.each do |name,conf|
+    config.vm.define name do | machine|
+        machine.vm.box = conf['image']
+        machine.vm.network "public_network", bridge: "Hyper-V Virtual Ethernet Adapter #2", ip: "192.168.0.#{conf['ip']}"
+        machine.memory = conf ['memory']
+        machine.cpu = conf ['cpu']
+        machine.vm.provision "shell", inline: <<-SHELL
+            #{conf['shell']}
+            SHELL
+          end
+        end
+   ## config.vm.provision "shell", inline: <<-SHELL
+    #curl -fsSL https://get.docker.com | sh
+  #SHELL
+ end
+
+
+
